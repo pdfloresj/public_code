@@ -1,0 +1,23 @@
+<?php
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+
+  define('OLDBASE', 'tmp_prod_migration');
+
+function etf_migrate_help($path, $arg) {
+	switch ($path) {
+		case "admin/help#etf_migrate":
+			return '<p>' . t("A module that allows migrates users, taxonomies, content from ETF.com site (current version)") . '</p>';
+			break;
+	}
+}
+
+

@@ -1,0 +1,13 @@
+name = "Drupal - Migrate"
+description = "A module that allows migrates users, taxonomies, content from Drupal site (current version)"
+package = "Drupal-Migrate"
+core = 7.x
+
+dependencies[] = migrate
+files[] = drupal_users.migrate.inc
+files[] = users.inc
+files[] = taxonomies.inc
+files[] = nodes.inc
+files[] = orders.inc
+
+

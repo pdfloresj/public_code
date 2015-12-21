@@ -1,0 +1,546 @@
+<?php
+
+class DrupalCommerceOrderMigration extends Migration {
+  public function __construct($arguments) {
+    parent::__construct($arguments);
+    $this->description = t('Migrate Drupal Commerce Orders');
+ 
+ 
+    $query = db_select(OLDBASE.'.commerce_order', 'o');
+      $query->fields('o', array('order_id', 'revision_id', 'type', 'uid', 'mail', 'status', 'created', 'changed', 'hostname', 'data'));
+      $query->condition('o.status', 'completed', '=');
+      $query->condition('o.type', 'commerce_order', '=');
+      $query->condition('o.uid', 0, '>');
+      //$query->range(0,15);
+
+
+    $this->source = new MigrateSourceSQL($query);
+    $this->destination = new MigrateDestinationEntityAPI('commerce_order', 'commerce_order');
+
+    $this->map = new MigrateSQLMap($this->machineName,
+      array(
+        'order_id' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'ID of destination commerce order',
+          'alias' => 'o',
+        )
+      ),
+      MigrateDestinationEntityAPI::getKeySchema('commerce_order', 'commerce_order')
+    );
+ 
+    // Make the mappings
+    $this->addFieldMapping('order_number', 'order_id');
+    $this->addFieldMapping('revision_id', 'revision_id');
+    $this->addFieldMapping('type', 'type');
+    $this->addFieldMapping('mail', 'mail');
+    $this->addFieldMapping('status', 'status');    
+    $this->addFieldMapping('created', 'created');
+    $this->addFieldMapping('changed', 'changed');
+    $this->addFieldMapping('hostname', 'hostname');
+    $this->addFieldMapping('data', 'data');
+
+      /*$queryNEW = db_select(OLDBASE.'.field_data_field_Drupal_newletters_module', 'new');
+      $queryNEW->addField('new', 'field_Drupal_newletters_module_value', 'value');
+      $queryNEW->condition('new.entity_id', 1445);  
+      $rowNEW=$queryNEW->execute()->fetchAll();
+
+      echo "<pre>";
+      var_dump($rowNEW); die();*/
+
+  }
+
+    public function complete($entity, stdClass $row) {
+      //new order
+      $order = commerce_order_load($entity->order_id);
+
+      // For relationship order-user -------------------------------------
+      $userObj = user_load_by_mail($row->mail);
+
+      if($userObj !== false){
+        //$newUid = array(LANGUAGE_NONE => array(array('uid' => current($userObj)->uid)));
+        $order->uid = $userObj->uid;
+      } 
+      // -----------------------------------------------------------------   
+
+      $queryPP = db_select(OLDBASE.'.field_data_field_preferred_prefix', 'pp');
+      $queryPP->addField('pp', 'field_preferred_prefix_value');
+      $queryPP->condition('pp.entity_id', $row->order_id);  
+      $queryPP->condition('pp.entity_type', 'commerce_order');  
+      $rowPP=$queryPP->execute()->fetchAll();
+
+      $queryFN = db_select(OLDBASE.'.field_data_field_first_name', 'fn');
+      $queryFN->addField('fn', 'field_first_name_value');
+      $queryFN->condition('fn.entity_id', $row->order_id, '=');
+      $queryFN->condition('fn.entity_type', 'commerce_order');    
+      $rowFN=$queryFN->execute()->fetchAll();
+
+      $queryLN = db_select(OLDBASE.'.field_data_field_last_name', 'ln');
+      $queryLN->addField('ln', 'field_last_name_value');
+      $queryLN->condition('ln.entity_id', $row->order_id, '='); 
+      $queryLN->condition('ln.entity_type', 'commerce_order');   
+      $rowLN=$queryLN->execute()->fetchAll();
+
+      $queryPN = db_select(OLDBASE.'.field_data_field_phone_number', 'phn');
+      $queryPN->addField('phn', 'field_phone_number_value');
+      $queryPN->condition('phn.entity_id', $row->order_id, '=');  
+      $queryPN->condition('phn.entity_type', 'commerce_order');  
+      $rowPN=$queryPN->execute()->fetchAll();
+
+      $queryPC = db_select(OLDBASE.'.field_data_field_order_utm_source', 'pc');
+      $queryPC->addField('pc', 'field_order_utm_source_value');
+      $queryPC->condition('pc.entity_id', $row->order_id, '=');  
+      $rowPC=$queryPC->execute()->fetchAll();
+
+      $queryAN = db_select(OLDBASE.'.field_data_field_attendee_name', 'an');
+      $queryAN->addField('an', 'field_attendee_name_value');
+      $queryAN->condition('an.entity_id', $row->order_id, '=');  
+      $rowAN=$queryAN->execute()->fetchAll();
+
+      $querySPO = db_select(OLDBASE.'.field_data_field_sponsor', 'spo');
+      $querySPO->addField('spo', 'field_sponsor_value');
+      $querySPO->condition('spo.entity_id', $row->order_id, '=');  
+      $rowSPO=$querySPO->execute()->fetchAll();
+
+      $querySAP = db_select(OLDBASE.'.field_data_field_sponsor_additional_pass', 'sap');
+      $querySAP->addField('sap', 'field_sponsor_additional_pass_value');
+      $querySAP->condition('sap.entity_id', $row->order_id, '=');  
+      $rowSAP=$querySAP->execute()->fetchAll();
+
+      $querySPE = db_select(OLDBASE.'.field_data_field_speaker', 'spe');
+      $querySPE->addField('spe', 'field_speaker_value');
+      $querySPE->condition('spe.entity_id', $row->order_id, '=');  
+      $rowSPE=$querySPE->execute()->fetchAll();
+
+      $queryUS = db_select(OLDBASE.'.field_data_field_order_utm_source_ok', 'us');
+      $queryUS->addField('us', 'field_order_utm_source_ok_value');
+      $queryUS->condition('us.entity_id', $row->order_id, '=');  
+      $rowUS=$queryUS->execute()->fetchAll();
+
+      $queryUC = db_select(OLDBASE.'.field_data_field_order_utm_campaign', 'uc');
+      $queryUC->addField('uc', 'field_order_utm_campaign_value');
+      $queryUC->condition('uc.entity_id', $row->order_id, '=');  
+      $rowUC=$queryUC->execute()->fetchAll();              
+
+      $queryCM = db_select(OLDBASE.'.field_data_field_company', 'cm');
+      $queryCM->addField('cm', 'field_company_value');
+      $queryCM->condition('cm.entity_id', $row->order_id, '=');
+      $queryCM->condition('cm.entity_type', 'commerce_order');    
+      $rowCM=$queryCM->execute()->fetchAll();                            
+
+      $queryJT = db_select(OLDBASE.'.field_data_field_job_title', 'jt');
+      $queryJT->addField('jt', 'field_job_title_value');
+      $queryJT->condition('jt.entity_id', $row->order_id, '=');
+      $queryJT->condition('jt.entity_type', 'commerce_order');    
+      $rowJT=$queryJT->execute()->fetchAll();  
+
+      $queryPBA = db_select(OLDBASE.'.field_data_field_primary_business_activity', 'pba');
+      $queryPBA->addField('ttd', 'name', 'pbactivity');
+      $queryPBA->leftJoin(OLDBASE.'.taxonomy_term_data', 'ttd', '(ttd.tid=pba.field_primary_business_activity_tid AND pba.entity_type =  :type)', array(':type' => 'commerce_order'));
+      $queryPBA->condition('pba.entity_id', $row->order_id, '=');  
+      $rowPBA=$queryPBA->execute()->fetchAll();
+
+      $queryFA = db_select(OLDBASE.'.field_data_field_are_you_a_financial_advise', 'fa');
+      $queryFA->addField('fa', 'field_are_you_a_financial_advise_value');
+      $queryFA->condition('fa.entity_id', $row->order_id, '=');
+      $queryFA->condition('fa.entity_type', 'commerce_order');    
+      $rowFA=$queryFA->execute()->fetchAll();             
+
+      $queryAUM = db_select(OLDBASE.'.field_data_field_assets_under_management', 'aum');
+      $queryAUM->addField('ttd', 'name', 'aumanagement');
+      $queryAUM->leftJoin(OLDBASE.'.taxonomy_term_data', 'ttd', '(ttd.tid=aum.field_assets_under_management_tid AND aum.entity_type =  :type)', array(':type' => 'commerce_order'));
+      $queryAUM->condition('aum.entity_id', $row->order_id, '=');  
+      $rowAUM=$queryAUM->execute()->fetchAll();
+
+      $queryICS = db_select(OLDBASE.'.field_data_field_income_source', 'ics');
+      $queryICS->addField('ttd', 'name', 'icsource');
+      $queryICS->leftJoin(OLDBASE.'.taxonomy_term_data', 'ttd', '(ttd.tid=ics.field_income_source_tid AND ics.entity_type =  :type)', array(':type' => 'commerce_order'));
+      $queryICS->condition('ics.entity_id', $row->order_id, '=');  
+      $rowICS=$queryICS->execute()->fetchAll();
+
+      $queryHDH = db_select(OLDBASE.'.field_data_field_how_did_you_hear_about_the', 'hdh');
+      $queryHDH->addField('ttd', 'name', 'hdhear');
+      $queryHDH->leftJoin(OLDBASE.'.taxonomy_term_data', 'ttd', '(ttd.tid=hdh.field_how_did_you_hear_about_the_tid AND hdh.entity_type =  :type)', array(':type' => 'commerce_order'));
+      $queryHDH->condition('hdh.entity_id', $row->order_id, '=');  
+      $rowHDH=$queryHDH->execute()->fetchAll();
+
+      $queryETN = db_select(OLDBASE.'.field_data_field_aum_invested_in_Drupals_etns', 'etn');
+      $queryETN->addField('etno', 'name', 'Drupalsetns');
+      $queryETN->leftJoin(OLDBASE.'.taxonomy_term_data', 'etno', '(etno.tid=etn.field_aum_invested_in_Drupals_etns_tid AND etn.entity_type =  :type)', array(':type' => 'commerce_order'));
+      $queryETN->condition('etn.entity_id', $row->order_id, '=');  
+      $rowETN=$queryETN->execute()->fetchAll();
+
+      $queryAO = db_select(OLDBASE.'.field_data_field_address_1', 'ao');
+      $queryAO->addField('ao', 'field_address_1_value');
+      $queryAO->condition('ao.entity_id', $row->order_id, '=');
+      $queryAO->condition('ao.entity_type', 'commerce_order');    
+      $rowAO=$queryAO->execute()->fetchAll();
+
+      $queryAT = db_select(OLDBASE.'.field_data_field_address_2', 'at');
+      $queryAT->addField('at', 'field_address_2_value');
+      $queryAT->condition('at.entity_id', $row->order_id, '=');
+      $queryAT->condition('at.entity_type', 'commerce_order');    
+      $rowAT=$queryAT->execute()->fetchAll();
+
+      $queryCT = db_select(OLDBASE.'.field_data_field_city', 'ct');
+      $queryCT->addField('ct', 'field_city_value');
+      $queryCT->condition('ct.entity_id', $row->order_id, '=');
+      $queryCT->condition('ct.entity_type', 'commerce_order');    
+      $rowCT=$queryCT->execute()->fetchAll();
+
+      $queryST = db_select(OLDBASE.'.field_data_field_state', 'st');
+      $queryST->addField('st', 'field_state_value');
+      $queryST->condition('st.entity_id', $row->order_id, '=');
+      $queryST->condition('st.entity_type', 'commerce_order');    
+      $rowST=$queryST->execute()->fetchAll();
+
+      $queryZPC = db_select(OLDBASE.'.field_data_field_zip_postal_code', 'zc');
+      $queryZPC->addField('zc', 'field_zip_postal_code_value');
+      $queryZPC->condition('zc.entity_id', $row->order_id, '=');
+      $queryZPC->condition('zc.entity_type', 'commerce_order');    
+      $rowZPC=$queryZPC->execute()->fetchAll();
+
+      $queryCR = db_select(OLDBASE.'.field_data_field_country_region_icw', 'cr');
+      $queryCR->addField('cr', 'field_country_region_icw_value');
+      $queryCR->condition('cr.entity_id', $row->order_id, '=');  
+      $queryCR->condition('cr.entity_type', 'commerce_order');  
+      $rowCR=$queryCR->execute()->fetchAll();
+
+      $queryNEW = db_select(OLDBASE.'.field_data_field_Drupal_newletters_module', 'new');
+      $queryNEW->addField('new', 'field_Drupal_newletters_module_value');
+      $queryNEW->condition('new.entity_id', $row->order_id, '=');  
+      $rowNEW=$queryNEW->execute()->fetchAll();
+
+      $queryCE = db_select(OLDBASE.'.field_data_field_do_you_have_a_continuing_e', 'ce');
+      $queryCE->addField('ce', 'field_do_you_have_a_continuing_e_value');
+      $queryCE->condition('ce.entity_id', $row->order_id, '=');  
+      $queryCE->condition('ce.entity_type', 'commerce_order');        
+      $rowCE=$queryCE->execute()->fetchAll();
+
+      $queryCFP = db_select(OLDBASE.'.field_data_field_cfp', 'cfp');
+      $queryCFP->addField('cfp', 'field_cfp_value');
+      $queryCFP->condition('cfp.entity_id', $row->order_id, '=');  
+      $queryCFP->condition('cfp.entity_type', 'commerce_order');        
+      $rowCFP=$queryCFP->execute()->fetchAll();
+
+      $queryCIMA = db_select(OLDBASE.'.field_data_field_cima', 'cima');
+      $queryCIMA->addField('cima', 'field_cima_value');
+      $queryCIMA->condition('cima.entity_id', $row->order_id, '=');  
+      $queryCIMA->condition('cima.entity_type', 'commerce_order');        
+      $rowCIMA=$queryCIMA->execute()->fetchAll();
+
+      $queryCFA = db_select(OLDBASE.'.field_data_field_cfa', 'cfa');
+      $queryCFA->addField('cfa', 'field_cfa_value');
+      $queryCFA->condition('cfa.entity_id', $row->order_id, '=');  
+      $queryCFA->condition('cfa.entity_type', 'commerce_order');        
+      $rowCFA=$queryCFA->execute()->fetchAll();                        
+
+      $queryTAC = db_select(OLDBASE.'.field_data_field_agree_terms_and_conditions', 'tac');
+      $queryTAC->addField('tac', 'field_agree_terms_and_conditions_value');
+      $queryTAC->condition('tac.entity_id', $row->order_id, '=');  
+      $rowTAC=$queryTAC->execute()->fetchAll();
+
+      $queryCRM = db_select(OLDBASE.'.field_data_field_crm_status', 'crm');
+      $queryCRM->addField('crm', 'field_crm_status_value');
+      $queryCRM->condition('crm.entity_id', $row->order_id, '=');  
+      $rowCRM=$queryCRM->execute()->fetchAll();
+
+      $queryUNI = db_select(OLDBASE.'.field_data_field_will_you_attend_the_Drupal_un', 'uni');
+      $queryUNI->addField('uni', 'field_will_you_attend_the_Drupal_un_value');
+      $queryUNI->condition('uni.entity_id', $row->order_id, '=');  
+      $rowUNI=$queryUNI->execute()->fetchAll();
+
+      $querySEU = db_select(OLDBASE.'.field_data_field_Drupal_university_100_pm_iec', 'seu');
+      $querySEU->addField('seu', 'field_Drupal_university_100_pm_iec_value');
+      $querySEU->condition('seu.entity_id', $row->order_id, '=');  
+      $rowSEU=$querySEU->execute()->fetchAll();
+
+      $querySEW = db_select(OLDBASE.'.field_data_field_ie_workshop_100_pm_iec', 'sew');
+      $querySEW->addField('sew', 'field_ie_workshop_100_pm_iec_value');
+      $querySEW->condition('sew.entity_id', $row->order_id, '=');  
+      $rowSEW=$querySEW->execute()->fetchAll();
+
+      $querySECM1 = db_select(OLDBASE.'.field_data_field_crossfit_600_am_iec', 'secm1');
+      $querySECM1->addField('secm1', 'field_crossfit_600_am_iec_value');
+      $querySECM1->condition('secm1.entity_id', $row->order_id, '=');  
+      $rowSECM1=$querySECM1->execute()->fetchAll();
+
+      $querySECM2 = db_select(OLDBASE.'.field_data_field_crossfit_700_am_iec', 'secm2');
+      $querySECM2->addField('secm2', 'field_crossfit_700_am_iec_value');
+      $querySECM2->condition('secm2.entity_id', $row->order_id, '=');  
+      $rowSECM2=$querySECM2->execute()->fetchAll();
+
+      $querySECT1 = db_select(OLDBASE.'.field_data_field_crossfit_600_am_iect', 'sect1');
+      $querySECT1->addField('sect1', 'field_crossfit_600_am_iect_value');
+      $querySECT1->condition('sect1.entity_id', $row->order_id, '=');  
+      $rowSECT1=$querySECT1->execute()->fetchAll();
+
+      $querySECT2 = db_select(OLDBASE.'.field_data_field_crossfit_700_am_iect', 'sect2');
+      $querySECT2->addField('sect2', 'field_crossfit_700_am_iect_value');
+      $querySECT2->condition('sect2.entity_id', $row->order_id, '=');  
+      $rowSECT2=$querySECT2->execute()->fetchAll();
+
+      $querySECW1 = db_select(OLDBASE.'.field_data_field_crossfit_600_am_iecw', 'secw1');
+      $querySECW1->addField('secw1', 'field_crossfit_600_am_iecw_value');
+      $querySECW1->condition('secw1.entity_id', $row->order_id, '=');  
+      $rowSECW1=$querySECW1->execute()->fetchAll();
+
+      $querySECW2 = db_select(OLDBASE.'.field_data_field_crossfit_700_am_iecw', 'secw2');
+      $querySECW2->addField('secw2', 'field_crossfit_700_am_iecw_value');
+      $querySECW2->condition('secw2.entity_id', $row->order_id, '=');  
+      $rowSECW2=$querySECW2->execute()->fetchAll();                                   
+
+      if(current($rowPP)!== false){
+        $order->field_preferred_prefix = array(LANGUAGE_NONE => array(array('value' => current($rowPP)->field_preferred_prefix_value))); 
+      }
+
+      if(current($rowFN)!== false){
+        $order->field_first_name = array(LANGUAGE_NONE => array(array('value' => current($rowFN)->field_first_name_value))); 
+      }
+
+      if(current($rowLN)!== false){
+        $order->field_last_name = array(LANGUAGE_NONE => array(array('value' => current($rowLN)->field_last_name_value))); 
+      }
+
+      if(current($rowPN)!== false){
+        $order->field_phone_number = array(LANGUAGE_NONE => array(array('value' => current($rowPN)->field_phone_number_value))); 
+      }
+
+      if(current($rowPC)!== false){
+        $order->field_order_utm_source = array(LANGUAGE_NONE => array(array('value' => current($rowPC)->field_order_utm_source_value))); 
+      }
+
+      if(current($rowAN)!== false){
+        $order->field_attendee_name = array(LANGUAGE_NONE => array(array('value' => current($rowAN)->field_attendee_name_value))); 
+      }
+
+      if(current($rowSPO)!== false){
+        $order->field_sponsor = array(LANGUAGE_NONE => array(array('value' => current($rowSPO)->field_sponsor_value))); 
+      }
+
+      if(current($rowSAP)!== false){
+        $order->field_sponsor_additional_pass = array(LANGUAGE_NONE => array(array('value' => current($rowSAP)->field_sponsor_additional_pass_value))); 
+      }
+
+      if(current($rowSPE)!== false){
+        $order->field_speaker = array(LANGUAGE_NONE => array(array('value' => current($rowSPE)->field_speaker_value))); 
+      }
+
+      if(current($rowUS)!== false){
+        $order->field_order_utm_source_ok = array(LANGUAGE_NONE => array(array('value' => current($rowUS)->field_order_utm_source_ok_value))); 
+      }
+
+      if(current($rowUC)!== false){
+        $order->field_order_utm_campaign = array(LANGUAGE_NONE => array(array('value' => current($rowUC)->field_order_utm_campaign_value))); 
+      }
+
+      if(current($rowCM)!== false){
+         $order->field_company = array(LANGUAGE_NONE => array(array('value' => current($rowCM)->field_company_value))); 
+      }
+
+      if(current($rowJT)!== false){
+         $order->field_job_title = array(LANGUAGE_NONE => array(array('value' => current($rowJT)->field_job_title_value))); 
+      }
+
+      if(current($rowPBA)!== false){
+        $PBATermId = taxonomy_get_term_by_name(current($rowPBA)->pbactivity,'Drupal_primary_business_activity'); 
+
+        if($PBATermId!==false){
+          $newPBA = array(LANGUAGE_NONE => array(array('tid' => current($PBATermId)->tid)));
+          $order->field_primary_business_activity = $newPBA;
+        } 
+      }
+
+      if(current($rowFA)!== false){
+         $order->field_are_you_a_financial_advise = array(LANGUAGE_NONE => array(array('value' => current($rowFA)->field_are_you_a_financial_advise_value)));
+      }      
+
+      if(current($rowAUM)!== false){
+        $PBATermId = taxonomy_get_term_by_name(current($rowAUM)->aumanagement,'Drupal_assets_under_management'); 
+
+        if($PBATermId!==false){
+          $newPBA = array(LANGUAGE_NONE => array(array('tid' => current($PBATermId)->tid)));
+          $order->field_assets_under_management = $newPBA;
+        } 
+      }
+
+      if(current($rowICS)!== false){
+        $PBATermId = taxonomy_get_term_by_name(current($rowICS)->icsource,'Drupal_income_source'); 
+
+        if($PBATermId!==false){
+          $newPBA = array(LANGUAGE_NONE => array(array('tid' => current($PBATermId)->tid)));
+          $order->field_income_source = $newPBA;
+        } 
+      }
+
+      if(current($rowHDH)!== false){
+        $PBATermId = taxonomy_get_term_by_name(current($rowHDH)->hdhear,'Drupal_how_did_you_hear_about_the_conference_'); 
+
+        if($PBATermId!==false){
+          if (isset(current($PBATermId)->tid)){
+            $newPBA = array(LANGUAGE_NONE => array(array('tid' => current($PBATermId)->tid)));
+            $order->field_how_did_you_hear_about_the = $newPBA;
+          } 
+        } 
+      }
+
+      if(current($rowETN)!== false){
+        $PBATermId = taxonomy_get_term_by_name(current($rowETN)->Drupalsetns,'Drupal_aum_invested_in_Drupals_etns'); 
+
+        if($PBATermId!==false){
+          $newPBA = array(LANGUAGE_NONE => array(array('tid' => current($PBATermId)->tid)));
+          $order->field_aum_invested_in_Drupals_etns = $newPBA;
+        } 
+      }
+
+      if(current($rowAO)!== false){
+        $order->field_address_1 = array(LANGUAGE_NONE => array(array('value' => current($rowAO)->field_address_1_value))); 
+      }
+
+      if(current($rowAT)!== false){
+        $order->field_address_2 = array(LANGUAGE_NONE => array(array('value' => current($rowAT)->field_address_2_value))); 
+      }
+
+      if(current($rowCT)!== false){
+        $order->field_city = array(LANGUAGE_NONE => array(array('value' => current($rowCT)->field_city_value))); 
+      }
+
+      if(current($rowST)!== false){
+        $order->field_state = array(LANGUAGE_NONE => array(array('value' => current($rowST)->field_state_value))); 
+      }
+
+      if(current($rowZPC)!== false){
+        $order->field_zip_postal_code = array(LANGUAGE_NONE => array(array('value' => current($rowZPC)->field_zip_postal_code_value))); 
+      }
+
+      if(current($rowCR)!== false){
+        $order->field_country_region_icw = array(LANGUAGE_NONE => array(array('value' => current($rowCR)->field_country_region_icw_value))); 
+      }
+
+      if(count($rowNEW)>0){
+        $ban1=0;
+        $ban2=0;
+        $ban3=0;
+        foreach($rowNEW as $nlt){
+          if(trim($nlt->field_Drupal_newletters_module_value)=="Drupal.com News Daily"){
+            $ban1=1;
+          }
+          elseif(trim($nlt->field_Drupal_newletters_module_value)=="Drupal.com News Weekly"){
+            $ban2=1;
+          }
+          elseif(trim($nlt->field_Drupal_newletters_module_value)=="Drupal Watch"){
+            $ban3=1;
+          }
+        }
+        if($ban1==1 && $ban2==1 && $ban3==1){
+          $newsletter = array(
+            array('value' => "Drupal News Daily"),
+            array('value' => "Drupal News Weekly" ),
+            array('value' => "Drupal Watch" ),
+          );
+        }
+        if($ban1==1 && $ban2==0 && $ban3==1){
+          $newsletter = array(
+            array('value' => "Drupal News Daily"),
+            array('value' => "Drupal Watch" ),
+          );
+        }
+        if($ban1==1 && $ban2==1 && $ban3==0){
+          $newsletter = array(
+            array('value' => "Drupal News Daily"),
+            array('value' => "Drupal News Weekly" ),
+          );
+        }
+        if($ban1==0 && $ban2==1 && $ban3==1){
+          $newsletter = array(
+            array('value' => "Drupal News Weekly" ),
+            array('value' => "Drupal Watch" ),
+          );
+        }
+        if($ban1==1 && $ban2==0 && $ban3==0){
+          $newsletter = array(
+            array('value' => "Drupal News Daily"),
+          );
+        }
+        if($ban1==0 && $ban2==1 && $ban3==0){
+          $newsletter = array(
+            array('value' => "Drupal News Weekly" ),
+          );
+        }
+        if($ban1==0 && $ban2==0 && $ban3==1){
+          $newsletter = array(
+            array('value' => "Drupal Watch" ),
+          );
+        }
+        if (isset($newsletter)){
+          $order->field_select_the_newsletters = array(LANGUAGE_NONE => $newsletter);
+        }
+      }      
+
+      if(current($rowCE)!== false){
+        $order->field_do_you_have_a_continuing_e = array(LANGUAGE_NONE => array(array('value' => current($rowCE)->field_do_you_have_a_continuing_e_value))); 
+      }
+
+      if(current($rowCFP)!== false){
+        $order->field_cfp = array(LANGUAGE_NONE => array(array('value' => current($rowCFP)->field_cfp_value))); 
+      }
+
+      if(current($rowCIMA)!== false){
+        $order->field_cima = array(LANGUAGE_NONE => array(array('value' => current($rowCIMA)->field_cima_value))); 
+      }
+
+      if(current($rowCFA)!== false){
+        $order->field_cfa = array(LANGUAGE_NONE => array(array('value' => current($rowCFA)->field_cfa_value))); 
+      }
+
+      if(current($rowTAC)!== false){
+        $order->field_agree_terms_and_conditions = array(LANGUAGE_NONE => array(array('value' => current($rowTAC)->field_agree_terms_and_conditions_value))); 
+      }
+
+      if(current($rowCRM)!== false){
+        $order->field_crm_status = array(LANGUAGE_NONE => array(array('value' => current($rowCRM)->field_crm_status_value))); 
+      }
+
+      if(current($rowUNI)!== false){
+        $order->field_will_you_attend_the_Drupal_un = array(LANGUAGE_NONE => array(array('value' => current($rowUNI)->field_will_you_attend_the_Drupal_un_value))); 
+      }
+
+      if(current($rowSEU)!== false){
+        $order->field_Drupal_university_100_pm_iec = array(LANGUAGE_NONE => array(array('value' => current($rowSEU)->field_Drupal_university_100_pm_iec_value))); 
+      }
+
+      if(current($rowSEW)!== false){
+        $order->field_ie_workshop_100_pm_iec = array(LANGUAGE_NONE => array(array('value' => current($rowSEW)->field_ie_workshop_100_pm_iec_value))); 
+      }
+
+      if(current($rowSECM1)!== false){
+        $order->field_crossfit_600_am_iec = array(LANGUAGE_NONE => array(array('value' => current($rowSECM1)->field_crossfit_600_am_iec_value))); 
+      }
+
+      if(current($rowSECM2)!== false){
+        $order->field_crossfit_700_am_iec = array(LANGUAGE_NONE => array(array('value' => current($rowSECM2)->field_crossfit_700_am_iec_value))); 
+      }
+
+      if(current($rowSECT1)!== false){
+        $order->field_crossfit_600_am_iect = array(LANGUAGE_NONE => array(array('value' => current($rowSECT1)->field_crossfit_600_am_iect_value))); 
+      }
+
+      if(current($rowSECT2)!== false){
+        $order->field_crossfit_700_am_iect = array(LANGUAGE_NONE => array(array('value' => current($rowSECT2)->field_crossfit_700_am_iect_value))); 
+      }
+
+      if(current($rowSECW1)!== false){
+        $order->field_crossfit_600_am_iecw = array(LANGUAGE_NONE => array(array('value' => current($rowSECW1)->field_crossfit_600_am_iecw_value))); 
+      }
+
+      if(current($rowSECW2)!== false){
+        $order->field_crossfit_700_am_iecw = array(LANGUAGE_NONE => array(array('value' => current($rowSECW2)->field_crossfit_700_am_iecw_value))); 
+      }
+
+      commerce_order_save($order); //register user in drupal
+
+    }
+
+}
+

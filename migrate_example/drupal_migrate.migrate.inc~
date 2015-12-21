@@ -1,0 +1,180 @@
+<?php
+function drupal_migrate_migrate_api(){
+  $api = array(
+      'api' => 2,
+      'groups' => array(
+          'Drupal' => array(
+          'title' => t('Drupal Migrations'),
+        ),
+    ),
+    'migrations' => array(
+      'DrupalUser' => array(
+        'class_name' => 'DrupalUsersMigration',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalUserDelete' => array(
+        'class_name' => 'DrupalUsersMigrationDelete',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesTags' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationTags',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesWebinarType' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationWebinarType',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesSections' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSections',
+        'group_name' => 'Drupal',
+      ), 
+      'DrupalTaxonomiesConferenceType' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationConferenceType',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesContATT' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationContATT',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesContDFPAd' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationDFPAd',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesAUM' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationAUM',
+        'group_name' => 'Drupal',
+      ),    
+      'DrupalTaxonomiesSMPP' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSMPP',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesHDHC' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationHDHC',
+        'group_name' => 'Drupal',
+      ),  
+      'DrupalTaxonomiesInSo' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationIcSo',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesPSDrupal' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationPSDrupal',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesPBA' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationPBA',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesSubscriptions' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSubscriptions',
+        'group_name' => 'Drupal',
+      ), 
+      'DrupalTaxonomiesWebinarP' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationWebinarP',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesULEC' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationULEC',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesRole' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationRole',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesDrupalRSections' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationDrupalRSections',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundAC' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundAC',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundCat' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundCat',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundFocus' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundFocus',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundGeo' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundGeo',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundNiche' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundNiche',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesFundRegion' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationFundRegion',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesJOISections' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationJOISections',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesSpeakerTabs' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSpeakerTabs',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesSpeakerType' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSpeakerType',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesSponsorType' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationSponsorType',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalTaxonomiesDrupalsETNs' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationDrupalsETNs',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodesAuthor' => array(
+        'class_name' => 'DrupalNodeMigrationAuthor',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodesAuthorDelete' => array(
+        'class_name' => 'DrupalNodeMigrationAuthorDelete',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodesArticle' => array(
+        'class_name' => 'DrupalNodeMigrationArticle',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalCommerceOrder' => array(
+        'class_name' => 'DrupalCommerceOrderMigration',
+        'group_name' => 'Drupal',
+      ),      
+      'DrupalTaxomoniesDelete' => array(
+        'class_name' => 'DrupalTaxonomiesMigrationDelete',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodeArticlesDelete' => array(
+        'class_name' => 'DrupalNodeMigrationArticlesDelete',
+        'group_name' => 'Drupal',
+      ), 
+      'DrupalNodeDrupalReportArticles' => array(
+        'class_name' => 'DrupalNodeMigrationDrupalReportArticles',
+        'group_name' => 'Drupal',
+      ), 
+      'DrupalNodeDrupalReportIssue' => array(
+        'class_name' => 'DrupalNodeMigrationDrupalReportIssue',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodeDrupalJOIArticles' => array(
+        'class_name' => 'DrupalNodeMigrationDrupalJOIArticles',
+        'group_name' => 'Drupal',
+      ), 
+      'DrupalNodeDrupalJOIIssue' => array(
+        'class_name' => 'DrupalNodeMigrationDrupalJOIIssue',
+        'group_name' => 'Drupal',
+      ),
+      'DrupalNodeATTArticles' => array(
+        'class_name' => 'DrupalNodeMigrationATTArticles',
+        'group_name' => 'Drupal',
+      ), 
+
+    ),
+  );
+  return $api;
+}
+
